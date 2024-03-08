@@ -46,12 +46,13 @@ class DialogueMsg:
         return f"{self.role}@{self.time}: {self.content}"
     
 class Dialogue:
-    def __init__(self, bot1: BotRole, bot2: BotRole, topic: str, max_turns: int = 5):
+    def __init__(self, bot1: BotRole, bot2: BotRole, topic: str, callback ,max_turns: int = 5):
         self.bot1 = bot1
         self.bot2 = bot2
         self.topic = topic
         self.conversation = []
         self.max_turns = max_turns
+        self.callback = callback
     
     def __str__(self):
         conversation_history = "\n".join([str(msg) for msg in self.conversation])
@@ -78,8 +79,8 @@ class Dialogue:
     
     def _add_history(self, msg: TextMsg):
         dialogue_msg = DialogueMsg(msg)
-        print(dialogue_msg)
         self.conversation.append(dialogue_msg)
+        self.callback(dialogue_msg)
     
     def get_colloquist(self, request_bot_name : str):
         if self.bot1.role_name == request_bot_name:
@@ -96,7 +97,7 @@ if __name__ == "__main__":
     bot1 = BotRole("孙悟空", "中国神话故事《西游记》中的主角，是一位勇猛无比的猴王，具有敢于正义、善于战斗的性格。")
     bot2 = BotRole("钢铁侠", "钢铁侠是一位有着坚定信念和创造力的超级英雄，他勇敢无畏，致力于保护地球和人类安全，同时具有自信和领导能力。")
     
-    dialogure= Dialogue(bot1, bot2, "英雄的宿命", max_turns=20)
+    dialogure= Dialogue(bot1, bot2, "英雄的宿命",callback = lambda msg: print(msg), max_turns=20 )
     dialogure.start()
     
     current_directory = os.getcwd()
