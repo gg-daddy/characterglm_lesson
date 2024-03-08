@@ -8,13 +8,14 @@ import jwt
 from data_types import TextMsg, ImageMsg, TextMsgList, MsgList, CharacterMeta
 
 
-# 智谱开放平台API key，参考 https://open.bigmodel.cn/usercenter/apikeys
-API_KEY: str = os.getenv("API_KEY", "")
 class ApiKeyNotSet(ValueError):
     pass
 
-def init_api_key():
-    API_KEY = os.getenv("API_KEY", "")
+def get_api_key():
+    api_key =  os.getenv("API_KEY")
+    if api_key is None or len(api_key)==0:
+        raise ApiKeyNotSet("API_KEY environment variable is not set")
+    return api_key.strip()
         
 def generate_token(apikey: str, exp_seconds: int) -> str:
     # reference: https://open.bigmodel.cn/dev/api#nosdk
@@ -40,11 +41,10 @@ def generate_token(apikey: str, exp_seconds: int) -> str:
 def get_characterglm_response(messages: TextMsgList, meta: CharacterMeta) -> Generator[str, None, None]:
     """ 通过http调用characterglm """
     # Reference: https://open.bigmodel.cn/dev/api#characterglm
-    init_api_key()
     url = "https://open.bigmodel.cn/api/paas/v3/model-api/charglm-3/sse-invoke"
     resp = requests.post(
         url,
-        headers={"Authorization": generate_token(API_KEY, 1800)},
+        headers={"Authorization": generate_token(get_api_key(), 1800)},
         json=dict(
             model="charglm-3",
             meta=meta,
@@ -72,8 +72,7 @@ def get_characterglm_response_via_sdk(messages: TextMsgList, meta: CharacterMeta
     # Reference: https://open.bigmodel.cn/dev/api#characterglm
     # 需要安装旧版sdk，zhipuai==1.0.7
     import zhipuai
-    init_api_key()
-    zhipuai.api_key = API_KEY
+    zhipuai.api_key = get_api_key()
     response = zhipuai.model_api.sse_invoke(
         model="charglm-3",
         meta= meta,
@@ -90,8 +89,7 @@ def get_chatglm_response_via_sdk(messages: TextMsgList) -> Generator[str, None, 
     # reference: https://open.bigmodel.cn/dev/api#glm-3-turbo  `GLM-3-Turbo`相关内容
     # 需要安装新版zhipuai
     from zhipuai import ZhipuAI
-    init_api_key()
-    client = ZhipuAI(api_key=API_KEY) # 请填写您自己的APIKey
+    client = ZhipuAI(api_key=get_api_key()) # 请填写您自己的APIKey
     response = client.chat.completions.create(
         model="glm-3-turbo",  # 填写需要调用的模型名称
         messages=messages,
@@ -167,7 +165,7 @@ def generate_cogview_image(prompt: str) -> str:
     """ 调用cogview生成图片，返回url """
     # reference: https://open.bigmodel.cn/dev/api#cogview
     from zhipuai import ZhipuAI
-    client = ZhipuAI(api_key=API_KEY) # 请填写您自己的APIKey
+    client = ZhipuAI(api_key=get_api_key()) # 请填写您自己的APIKey
     
     response = client.images.generations(
         model="cogview-3", #填写需要调用的模型名称
