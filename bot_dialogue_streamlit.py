@@ -22,7 +22,7 @@ with st.sidebar:
     bot1_profile = st.text_area('Bot1 Profile', key='bot1_profile',value='中国神话故事《西游记》中的主角，是一位勇猛无比的猴王，具有敢于正义、善于战斗的性格。')
     
     bot2_name = st.text_input('👾 Bot2 Name', key='bot2_name', value='钢铁侠')
-    bot2_profile = st.text_area('Bot1 Profile', key='bot2_profile', value='钢铁侠是一位有着坚定信念和创造力的超级英雄，他勇敢无畏，致力于保护地球和人类安全，同时具有自信和领导能力。')
+    bot2_profile = st.text_area('Bot2 Profile', key='bot2_profile', value='钢铁侠是一位有着坚定信念和创造力的超级英雄，他勇敢无畏，致力于保护地球和人类安全，同时具有自信和领导能力。')
 
 os.environ["API_KEY"] = chatglm_api_key
 
