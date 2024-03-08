@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 from datetime import datetime
 from bot_dialogue import BotRole, Dialogue, DialogueMsg
@@ -6,21 +7,24 @@ st.set_page_config(page_title="💬 CharacterGLM Bots Dialogue")
 
 # Replicate Credentials
 with st.sidebar:
-    st.title('🕹️对话设置')
+    st.title('🕹️Please set the dialogue scene')
     
-    st.write('🤼‍♀️ 请设定主题')
-    topic = st.text_input('主题', key='topic', label_visibility='collapsed',value='宇宙大爆炸')
+    chatglm_api_key = st.text_input('Enter ChatGLM API Key:', type='password')
+    if len(chatglm_api_key)==0:
+        st.warning('Please enter your ChatGLM API Key!', icon='⚠️')
+    else:
+        st.success('Proceed setting!', icon='👉')
+                
+    topic = st.text_input('Topic', key='topic',value='宇宙大爆炸')
+    turn = st.number_input('Turns', key='turn',value=5)
     
-    st.write('🎲 对话轮次')
-    turn = st.number_input('轮次', key='turn', label_visibility='collapsed',value=5)
+    bot1_name = st.text_input('🤖 Bot1 Name', key='bot1_name',value='孙悟空')
+    bot1_profile = st.text_area('Bot1 Profile', key='bot1_profile',value='中国神话故事《西游记》中的主角，是一位勇猛无比的猴王，具有敢于正义、善于战斗的性格。')
     
-    st.write('😎 角色1')
-    bot1_name = st.text_input('名称', key='bot1_name',label_visibility='collapsed', value='孙悟空')
-    bot1_profile = st.text_area('角色设定', key='bot1_profile',label_visibility='collapsed', value='中国神话故事《西游记》中的主角，是一位勇猛无比的猴王，具有敢于正义、善于战斗的性格。')
-    
-    st.write('🤖 角色2')
-    bot2_name = st.text_input('名称', key='bot2_name', label_visibility='collapsed', value='钢铁侠')
-    bot2_profile = st.text_area('角色设定', key='bot2_profile', label_visibility='collapsed', value='钢铁侠是一位有着坚定信念和创造力的超级英雄，他勇敢无畏，致力于保护地球和人类安全，同时具有自信和领导能力。')
+    bot2_name = st.text_input('👾 Bot2 Name', key='bot2_name', value='钢铁侠')
+    bot2_profile = st.text_area('Bot1 Profile', key='bot2_profile', value='钢铁侠是一位有着坚定信念和创造力的超级英雄，他勇敢无畏，致力于保护地球和人类安全，同时具有自信和领导能力。')
+
+os.environ["API_KEY"] = chatglm_api_key
 
 def reset_messages():
     st.session_state.messages = []
@@ -51,6 +55,6 @@ def download_dialogue():
     return st.session_state.get('dialogure', '')
 
 btn_start, btn_clear, btn_save = st.sidebar.columns(3)
-btn_start.button('开始对话', on_click=start_dialogue)
-btn_clear.button('清空对话', on_click=reset_messages)
-btn_save.download_button('保存对话', data=download_dialogue(), file_name=f'dialogue-{datetime.now()}.txt', mime='text/plain')
+btn_start.button('Start Dialogue', on_click=start_dialogue)
+btn_clear.button('Clear Dialogue', on_click=reset_messages)
+btn_save.download_button('Download Dialogue', data=download_dialogue(), file_name=f'dialogue-{datetime.now()}.txt', mime='text/plain')

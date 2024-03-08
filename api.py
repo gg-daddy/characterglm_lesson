@@ -10,17 +10,12 @@ from data_types import TextMsg, ImageMsg, TextMsgList, MsgList, CharacterMeta
 
 # 智谱开放平台API key，参考 https://open.bigmodel.cn/usercenter/apikeys
 API_KEY: str = os.getenv("API_KEY", "")
-
-
 class ApiKeyNotSet(ValueError):
     pass
 
-
-def verify_api_key_not_empty():
-    if not API_KEY:
-        raise ApiKeyNotSet
-
-
+def init_api_key():
+    API_KEY = os.getenv("API_KEY", "")
+        
 def generate_token(apikey: str, exp_seconds: int) -> str:
     # reference: https://open.bigmodel.cn/dev/api#nosdk
     try:
@@ -45,7 +40,7 @@ def generate_token(apikey: str, exp_seconds: int) -> str:
 def get_characterglm_response(messages: TextMsgList, meta: CharacterMeta) -> Generator[str, None, None]:
     """ 通过http调用characterglm """
     # Reference: https://open.bigmodel.cn/dev/api#characterglm
-    verify_api_key_not_empty()
+    init_api_key()
     url = "https://open.bigmodel.cn/api/paas/v3/model-api/charglm-3/sse-invoke"
     resp = requests.post(
         url,
@@ -77,7 +72,7 @@ def get_characterglm_response_via_sdk(messages: TextMsgList, meta: CharacterMeta
     # Reference: https://open.bigmodel.cn/dev/api#characterglm
     # 需要安装旧版sdk，zhipuai==1.0.7
     import zhipuai
-    verify_api_key_not_empty()
+    init_api_key()
     zhipuai.api_key = API_KEY
     response = zhipuai.model_api.sse_invoke(
         model="charglm-3",
@@ -95,7 +90,7 @@ def get_chatglm_response_via_sdk(messages: TextMsgList) -> Generator[str, None, 
     # reference: https://open.bigmodel.cn/dev/api#glm-3-turbo  `GLM-3-Turbo`相关内容
     # 需要安装新版zhipuai
     from zhipuai import ZhipuAI
-    verify_api_key_not_empty()
+    init_api_key()
     client = ZhipuAI(api_key=API_KEY) # 请填写您自己的APIKey
     response = client.chat.completions.create(
         model="glm-3-turbo",  # 填写需要调用的模型名称
