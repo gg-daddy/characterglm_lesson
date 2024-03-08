@@ -36,10 +36,10 @@ def update_api_key(key: Optional[str] = None):
         print(f'update_api_key. st.session_state["API_KEY"] = {st.session_state["API_KEY"]}, key = {key}')
     key = key or st.session_state["API_KEY"]
     if key:
-        api.API_KEY = key
+        os.environ["API_KEY"] = key
 
 # 设置API KEY
-api_key = st.sidebar.text_input("API_KEY", value=os.getenv("API_KEY", ""), key="API_KEY", type="password", on_change=update_api_key)
+api_key = st.sidebar.text_input("API_KEY",  key="API_KEY", type="password", on_change=update_api_key)
 update_api_key(api_key)
 
 st.sidebar.selectbox("图片风格", ["二次元","油画", "水墨画","素描","手绘","文艺复兴","超现实主义","魔幻"], index=0, key="picture_style")
