@@ -1,39 +1,28 @@
-
-from typing import Generator
-from api import generate_role_appearance, get_chatglm_response_via_sdk, get_characterglm_response
-from data_types import TextMsg, CharacterMeta
 from datetime import datetime
-import os
+from abc import ABC, abstractmethod
 
 
-class BotRole:
-    def __init__(self, role_name: str, role_profile: str):
-        self.role_name = role_name
-        self._role_profile = role_profile
-        self.setting = "".join(generate_role_appearance(role_profile))
+class DialogueBotEngine(ABC):
 
-    def __str__(self):
-        return f"角色名称: {self.role_name}\n角色设定: {self.setting}"
+    @abstractmethod
+    def get_bot_setting(self, role_profile: str) -> str:
+        '''
+        根据角色描述，生成角色的外貌描写
+        '''
+        pass
 
-    def initiate_dialogue(self, dialogue: "Dialogue"):
-        prompt_dialogue_first_question = f"""
-        基于下面的主题，提出一个问题 ，只返回问题本身，不添加多余的其他符号。 
-        主题：{dialogue.topic}
-        """
-        initial_question = "".join(get_chatglm_response_via_sdk(
-            [TextMsg(role="user", content=prompt_dialogue_first_question)]))
-        return TextMsg(role=self.role_name, content=initial_question)
+    @abstractmethod
+    def get_topic_question(self, topic: str) -> str:
+        '''
+        从指定的 topic 中提出一个问题
+        '''
+        pass
 
-    def continue_dialogue(self, dialogue: "Dialogue"):
-        colloquist = dialogue.get_colloquist(self.role_name)
-        meta = CharacterMeta(user_info=colloquist.setting, bot_info=self.setting,
-                             bot_name=self.role_name, user_name=colloquist.role_name)
-        # 兼容 role 只有 user 和 assistant 两种。
-        conversation = [TextMsg(role="assistant", content=msg.content)
-                        if msg.role == self.role_name
-                        else TextMsg(role="user", content=msg.content) for msg in dialogue.conversation]
-        response = "".join(get_characterglm_response(conversation, meta))
-        return TextMsg(role=self.role_name, content=response)
+    def get_bot_response(self, current_bot: "BotRole", colloquist: "BotRole", conversation: list["DialogueMsg"]) -> str:
+        '''
+        生成角色的回答
+        '''
+        pass
 
 
 class DialogueMsg:
@@ -41,9 +30,9 @@ class DialogueMsg:
     role: str
     content: str
 
-    def __init__(self, text_msg: TextMsg):
-        self.role = text_msg["role"]
-        self.content = text_msg["content"]
+    def __init__(self, role: str, content: str):
+        self.role = role
+        self.content = content
         self.time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     def __str__(self) -> str:
@@ -51,7 +40,7 @@ class DialogueMsg:
 
 
 class Dialogue:
-    def __init__(self, bot1: BotRole, bot2: BotRole, topic: str, callback, max_turns: int = 5):
+    def __init__(self, bot1: "BotRole", bot2: "BotRole", topic: str, callback, max_turns: int = 5):
         self.bot1 = bot1
         self.bot2 = bot2
         self.topic = topic
@@ -83,10 +72,9 @@ class Dialogue:
             self._add_history(self.bot1.continue_dialogue(self))
             self._add_history(self.bot2.continue_dialogue(self))
 
-    def _add_history(self, msg: TextMsg):
-        dialogue_msg = DialogueMsg(msg)
-        self.conversation.append(dialogue_msg)
-        self.callback(dialogue_msg)
+    def _add_history(self, msg: DialogueMsg):
+        self.conversation.append(msg)
+        self.callback(msg)
 
     def get_colloquist(self, request_bot_name: str):
         if self.bot1.role_name == request_bot_name:
@@ -99,18 +87,22 @@ class Dialogue:
             file.write(str(self))
 
 
-if __name__ == "__main__":
-    print("Testing BotRole and Dialogue classes")
+class BotRole:
+    def __init__(self, role_name: str, role_profile: str, engine: DialogueBotEngine):
+        self.role_name = role_name
+        self._role_profile = role_profile
+        self.engine = engine
+        self.setting = self.engine.get_bot_setting(role_profile)
 
-    bot1 = BotRole("孙悟空", "中国神话故事《西游记》中的主角，是一位勇猛无比的猴王，具有敢于正义、善于战斗的性格。")
-    bot2 = BotRole(
-        "钢铁侠", "钢铁侠是一位有着坚定信念和创造力的超级英雄，他勇敢无畏，致力于保护地球和人类安全，同时具有自信和领导能力。")
+    def __str__(self):
+        return f"角色名称: {self.role_name}\n角色设定: {self.setting}"
 
-    dialogure = Dialogue(bot1, bot2, "英雄的宿命",
-                         callback=lambda msg: print(msg), max_turns=20)
-    dialogure.start()
+    def initiate_dialogue(self, dialogue: "Dialogue"):
+        initial_question = self.engine.get_topic_question(topic=dialogue.topic)
+        return DialogueMsg(role=self.role_name, content=initial_question)
 
-    current_directory = os.getcwd()
-    file_name = f".dialogue-{datetime.now()}.txt"
-    file_path = os.path.join(current_directory, file_name)
-    dialogure.save_dialogue_to_file(file_path)
+    def continue_dialogue(self, dialogue: "Dialogue"):
+        colloquist = dialogue.get_colloquist(self.role_name)
+        response = self.engine.get_bot_response(
+            self, colloquist, dialogue.conversation)
+        return DialogueMsg(role=self.role_name, content=response)
