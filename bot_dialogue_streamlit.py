@@ -13,13 +13,18 @@ with st.sidebar:
     engine_name = st.selectbox('Select Dialogue Engine:', ['chatglm'])
 
     if engine_name == 'chatglm':
-        chatglm_api_key = st.text_input(
-            'Enter ChatGLM API Key:', type='password')
-        if len(chatglm_api_key) == 0:
-            st.warning('Please enter your ChatGLM API Key!', icon='⚠️')
-        else:
+        if 'CHATGLM_API_KEY' in st.secrets:
+            st.success('API key already provided!', icon='✅')
+            chatglm_api_key = st.secrets['CHATGLM_API_KEY']
             os.environ["API_KEY"] = chatglm_api_key
-            st.success('Proceed setting!', icon='👉')
+        else:
+            chatglm_api_key = st.text_input(
+                'Enter ChatGLM API Key:', type='password')
+            if len(chatglm_api_key) == 0:
+                st.warning('Please enter your ChatGLM API Key!', icon='⚠️')
+            else:
+                os.environ["API_KEY"] = chatglm_api_key
+                st.success('Proceed setting!', icon='👉')
 
     topic = st.text_input('Topic', key='topic', value='宇宙大爆炸')
     turn = st.number_input('Turns', key='turn', value=5)
