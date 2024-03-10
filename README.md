@@ -1,4 +1,14 @@
-[![Dialogue betwen two bots](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://two-bots-dialogue.streamlit.app/)
+# Assignments
+
+## Dialogue betwen two bots
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://two-bots-dialogue.streamlit.app/)
+![Two Bots Dialogue](./images/two-bots-dialogue.png)
+
+## Image Style
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://talk-to-bot.streamlit.app/)
+![Two Bots Dialogue](./images/style_image.png)
+
+# References
 
 1. [简介](./00_简介.md)
 2. [类型标注介绍与数据类型定义](./01_类型标注介绍与数据类型定义.md)

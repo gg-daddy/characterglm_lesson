@@ -27,7 +27,7 @@ with st.sidebar:
                 st.success('Proceed setting!', icon='👉')
 
     topic = st.text_input('Topic', key='topic', value='宇宙大爆炸')
-    turn = st.number_input('Turns', key='turn', value=5)
+    turn = st.slider('Max Turns', min_value=3, max_value=20, value=5)
 
     bot1_name = st.text_input('🤖 Bot1 Name', key='bot1_name', value='孙悟空')
     bot1_profile = st.text_area(
